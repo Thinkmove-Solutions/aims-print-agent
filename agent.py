@@ -154,12 +154,29 @@ async def run(config: dict) -> None:
         backoff = min(backoff * 2, RECONNECT_MAX_SECONDS)
 
 
+def default_config_dir() -> Path:
+    """
+    Directory to look for agent-config.json in by default.
+
+    When running as a PyInstaller --onefile executable, `__file__` points
+    into the temporary extraction folder (e.g. `...\\Temp\\_MEI123456\\`),
+    NOT the folder the .exe actually sits in on disk — using it here would
+    silently look for the config in the wrong place every single run.
+    `sys.executable` is the actual .exe path in a frozen build; fall back to
+    `__file__` when running the script directly (`python agent.py`), where
+    sys.executable is the Python interpreter itself, not this script.
+    """
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(
         "--config", type=Path,
-        default=Path(__file__).resolve().parent / "agent-config.json",
-        help="Path to agent-config.json (default: next to this script).",
+        default=default_config_dir() / "agent-config.json",
+        help="Path to agent-config.json (default: next to the .exe / this script).",
     )
     args = parser.parse_args()
 
