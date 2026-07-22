@@ -6,6 +6,13 @@ on:
     tags: ["v*"]
   workflow_dispatch: {}
 
+# The default GITHUB_TOKEN is read-only for repos where the org sets that as
+# the default — this job needs to create a Release + upload an asset to it,
+# so grant contents:write explicitly (least-privilege: only what this job
+# actually does, nothing broader).
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
