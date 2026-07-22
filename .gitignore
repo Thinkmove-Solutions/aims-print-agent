@@ -1,0 +1,13 @@
+# Never commit a shop's pairing token.
+agent-config.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# PyInstaller build output
+build/
+dist/
+*.spec
