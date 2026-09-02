@@ -40,9 +40,12 @@ import base64
 import json
 import logging
 import socket
+import ssl
 import sys
 from pathlib import Path
 from urllib.parse import urlencode
+
+import certifi
 
 try:
     import websockets
@@ -123,11 +126,13 @@ async def ping_loop(ws) -> None:
 async def run(config: dict) -> None:
     url = config["ws_url"].rstrip("/") + "/?" + urlencode({"agent_token": config["token"]})
     backoff = RECONNECT_MIN_SECONDS
+    ssl_context = ssl.create_default_context()
+    ssl_context.load_verify_locations(cafile=certifi.where())
 
     while True:
         try:
             log.info("Connecting...")
-            async with websockets.connect(url, ping_interval=None) as ws:
+            async with websockets.connect(url, ping_interval=None, ssl=ssl_context) as ws:
                 log.info("Connected — waiting for print jobs.")
                 backoff = RECONNECT_MIN_SECONDS
                 pinger = asyncio.create_task(ping_loop(ws))
